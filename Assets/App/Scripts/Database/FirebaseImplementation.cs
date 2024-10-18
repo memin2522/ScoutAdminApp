@@ -28,14 +28,12 @@ public class FirebaseImplementation : MonoBehaviour, IDatabase
             var queryConfig = databaseQuery;
             docRef = db.Collection(queryConfig.Collection).Document();
         }
-
         return docRef.Id;
     }
 
     public void RetriveDataQuery<T>(QueryConfig databaseQuery, Action<T> callbackResult)
     {
         DocumentReference docRef = GetDocumentReferenceFromQueryConfig(databaseQuery);
-
         var dataTask = docRef.GetSnapshotAsync().ContinueWithOnMainThread(dataTask =>
         {
             if (dataTask.IsCompleted)
@@ -46,7 +44,7 @@ public class FirebaseImplementation : MonoBehaviour, IDatabase
             }
             else
             {
-                Debug.Log("Failed to retrieve data.");
+                Debug.LogWarning($"Failed to data");
             }
         });
     }
@@ -85,22 +83,23 @@ public class FirebaseImplementation : MonoBehaviour, IDatabase
                             // no hay Elementos 
                         }
                     }
+                    Debug.Log("Carlos");
                     callbackResult(data);
                 }
                 catch (Exception e)
                 {
-                    Debug.Log(e.Message);
+                    Debug.LogError(e.Message);
                     callbackResult(data);
                 }
             }
             else
             {
-                Debug.Log($"Failed to retrieve NanoData from FB: {queryTask.Exception}");
+                Debug.LogWarning($"Failed to retrieve NanoData from FB: {queryTask.Exception}");
             }
         });
     }
 
-    public void SetDataQuery(object modelData, QueryConfig databaseQuery, Action<bool> callback)
+    public void SetDataQuery(object modelData, QueryConfig databaseQuery, Action<bool> callback = null)
     {
         DocumentReference docRef = GetDocumentReferenceFromQueryConfig(databaseQuery);
         var dataTask = docRef.SetAsync(modelData).ContinueWithOnMainThread(dataTask =>
@@ -130,7 +129,7 @@ public class FirebaseImplementation : MonoBehaviour, IDatabase
             }
             else
             {
-                Debug.Log("Errores en borrado del documento");
+                Debug.LogError("Errores en borrado del documento");
                 if (callback != null) callback.Invoke(false);
             }
         });
@@ -142,7 +141,7 @@ public class FirebaseImplementation : MonoBehaviour, IDatabase
         QueryConfig queryConfig = databaseQuery;
 
         var dataTask = docRef.UpdateAsync(databaseQuery.FieldsToUpdate).
-            ContinueWith(dataTask =>
+            ContinueWithOnMainThread(dataTask =>
             {
                 if (dataTask.IsCompleted)
                 {
@@ -151,7 +150,7 @@ public class FirebaseImplementation : MonoBehaviour, IDatabase
                 }
                 else
                 {
-                    Debug.Log("Errores en borrado del documento");
+                    Debug.LogError("Errores en borrado del documento");
                     if (callback != null) callback.Invoke(false);
                 }
             });
